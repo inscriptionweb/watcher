@@ -48,9 +48,9 @@ func NewSender(username string, ip string, keyFile string, localPath string, rem
 }
 
 // Send a file remotely
-func (s *Sender) Send(fileNames []string) {
+func (s *Sender) Send(files *[]string) {
 
-	for _, filename := range fileNames {
+	for _, filename := range *files {
 		cleanedLocalPath := strings.TrimRight(s.localPath, "/")
 		cleanedRemotePath := strings.TrimRight(s.remotePath, "/")
 		fileWithoutSuffix := strings.TrimPrefix(filename, cleanedLocalPath+"/")
