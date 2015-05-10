@@ -74,9 +74,7 @@ func (s *Sender) Send(files *[]string) {
 
 		_, folderError := s.sftpClient.Lstat(folders + "/" + strings.Join(chunks, "/"))
 
-		error, ok := folderError.(*sftp.StatusError)
-
-		if ok && error != nil && error.Code == 2 {
+		if error, ok := folderError.(*sftp.StatusError); ok && error != nil && error.Code == 2 {
 
 			for _, chunk := range chunks {
 
