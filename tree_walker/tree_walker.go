@@ -3,6 +3,7 @@ package tree_walker
 import "fmt"
 import "os"
 import "time"
+import "github.com/Sirupsen/logrus"
 
 const (
 	NO_ERROR = 0
@@ -67,6 +68,10 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 	defer file.Close()
 
 	if error != nil {
+		logrus.WithFields(logrus.Fields{
+			"path": path,
+		}).Error("Path not found")
+
 		return TreeWalkerError{
 			path,
 			PATH_NOT_FOUND,
@@ -76,6 +81,10 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 	if fileStat, error := file.Stat(); error != nil || !fileStat.IsDir() {
 		if (error != nil) {
 
+			logrus.WithFields(logrus.Fields{
+				"path": path,
+			}).Error("Can't stat path")
+
 			return TreeWalkerError{
 				path,
 				PATH_STAT_FAILURE,
@@ -83,6 +92,10 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 		}
 
 		if (!fileStat.IsDir()) {
+			logrus.WithFields(logrus.Fields{
+				"path": path,
+			}).Error("Path is not a directory")
+
 			return TreeWalkerError{
 				path,
 				PATH_NOT_A_DIRECTORY,
@@ -103,12 +116,20 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 					if !subFileStat.IsDir() {
 						if c.filterFileByDate(builtPath) {
 
+							logrus.WithFields(logrus.Fields{
+								"file": builtPath,
+							}).Info("Add file")
+
 							*files = append(*files, builtPath)
 						}
 					} else {
 						if treeWalkerError := c.walk(builtPath, files); treeWalkerError.CodeInteger() != 0 {
 							return treeWalkerError
 						}
+
+						logrus.WithFields(logrus.Fields{
+							"folder": builtPath,
+						}).Info("Browse folder")
 					}
 
 				}

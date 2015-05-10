@@ -3,7 +3,7 @@ package sender
 import "github.com/pkg/sftp"
 import "golang.org/x/crypto/ssh"
 import "io/ioutil"
-import "log"
+import "github.com/Sirupsen/logrus"
 import "strings"
 
 type Sender struct {
@@ -19,7 +19,9 @@ func NewSender(username string, ip string, keyFile string, localPath string, rem
 	signer, error := ssh.ParsePrivateKey([]byte(privateKeyDatas))
 
 	if error != nil {
-		log.Fatalf("Failed to parse private key: " + error.Error())
+		logrus.WithFields(logrus.Fields{
+			"message": error.Error(),
+		}).Fatal("Failed to parse private key")
 	}
 
 	config := &ssh.ClientConfig{
@@ -35,7 +37,9 @@ func NewSender(username string, ip string, keyFile string, localPath string, rem
 		if sftpClientTmp, err := sftp.NewClient(client); err == nil {
 			sftpClient = sftpClientTmp
 		} else {
-			log.Fatalf("Failed to connect to remote host: " + err.Error())
+			logrus.WithFields(logrus.Fields{
+				"message": error.Error(),
+			}).Fatal("Failed to connect to remote host")
 		}
 	}
 
@@ -64,7 +68,7 @@ func (s *Sender) Send(files *[]string) {
 
 		defer func() {
 			if r := recover(); r != nil {
-				log.Fatalf("Check remote folder exists and connection to remote host is possible")
+				logrus.Fatal("Check remote folder exists and connection to remote host is possible")
 			}
 		}()
 
@@ -78,9 +82,11 @@ func (s *Sender) Send(files *[]string) {
 
 				folders = folders + "/" + chunk
 
-				log.Print("Create folder " + folders)
-
 				s.sftpClient.Mkdir(folders)
+
+				logrus.WithFields(logrus.Fields{
+					"folders": folders,
+				}).Info("Folder created")
 			}
 		}
 
@@ -88,6 +94,8 @@ func (s *Sender) Send(files *[]string) {
 		defer remoteFile.Close()
 		remoteFile.Write(localFileDatas)
 
-		log.Print("Copy file " + remoteFileName)
+		logrus.WithFields(logrus.Fields{
+			"file": remoteFileName,
+		}).Info("File copied")
 	}
 }
