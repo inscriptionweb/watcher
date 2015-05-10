@@ -5,6 +5,7 @@ import "golang.org/x/crypto/ssh"
 import "io/ioutil"
 import "github.com/Sirupsen/logrus"
 import "strings"
+import "os"
 
 type Sender struct {
 	sftpClient *sftp.Client
@@ -21,7 +22,9 @@ func NewSender(username string, ip string, keyFile string, localPath string, rem
 	if error != nil {
 		logrus.WithFields(logrus.Fields{
 			"message": error.Error(),
-		}).Fatal("Failed to parse private key")
+		}).Error("Failed to parse private key")
+
+		os.Exit(1)
 	}
 
 	config := &ssh.ClientConfig{
@@ -39,7 +42,9 @@ func NewSender(username string, ip string, keyFile string, localPath string, rem
 		} else {
 			logrus.WithFields(logrus.Fields{
 				"message": error.Error(),
-			}).Fatal("Failed to connect to remote host")
+			}).Error("Failed to connect to remote host")
+
+			os.Exit(1)
 		}
 	}
 
@@ -68,7 +73,8 @@ func (s *Sender) Send(files *[]string) {
 
 		defer func() {
 			if r := recover(); r != nil {
-				logrus.Fatal("Check remote folder exists and connection to remote host is possible")
+				logrus.Error("Check remote folder exists and connection to remote host is possible")
+				os.Exit(1)
 			}
 		}()
 
