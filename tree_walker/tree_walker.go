@@ -126,6 +126,10 @@ func (c *TreeWalker) walk(path string, files *[]string) TreeWalkerError {
 			if c.filterByFolderName(fileName) {
 				if subFileStat, error := os.Stat(builtPath); error == nil {
 					if !subFileStat.IsDir() {
+						c.logger.WithFields(logrus.Fields{
+							"file": builtPath,
+						}).Info("Check file")
+
 						if c.filterFileByDate(builtPath) {
 
 							c.logger.WithFields(logrus.Fields{
