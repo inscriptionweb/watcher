@@ -11,10 +11,11 @@ type Sender struct {
 	sftpClient *sftp.Client
 	remotePath string
 	localPath  string
+	logger     *logrus.Logger
 }
 
 // Constructor
-func NewSender(username string, ip string, keyFile string, localPath string, remotePath string) *Sender {
+func NewSender(username string, ip string, keyFile string, localPath string, remotePath string, logger *logrus.Logger) *Sender {
 	privateKeyDatas, _ := ioutil.ReadFile(keyFile)
 
 	signer, error := ssh.ParsePrivateKey([]byte(privateKeyDatas))
@@ -52,6 +53,7 @@ func NewSender(username string, ip string, keyFile string, localPath string, rem
 		sftpClient: sftpClient,
 		localPath:  localPath,
 		remotePath: remotePath,
+		logger:     logger,
 	}
 
 }
@@ -73,7 +75,7 @@ func (s *Sender) Send(files *[]string) {
 
 		defer func() {
 			if r := recover(); r != nil {
-				logrus.Error("Check remote folder exists and connection to remote host is possible")
+				s.logger.Error("Check remote folder exists and connection to remote host is possible")
 				os.Exit(1)
 			}
 		}()
@@ -88,7 +90,7 @@ func (s *Sender) Send(files *[]string) {
 
 				s.sftpClient.Mkdir(folders)
 
-				logrus.WithFields(logrus.Fields{
+				s.logger.WithFields(logrus.Fields{
 					"folders": folders,
 				}).Info("Folder created")
 			}
@@ -98,7 +100,7 @@ func (s *Sender) Send(files *[]string) {
 		defer remoteFile.Close()
 		remoteFile.Write(localFileDatas)
 
-		logrus.WithFields(logrus.Fields{
+		s.logger.WithFields(logrus.Fields{
 			"file": remoteFileName,
 		}).Info("File copied")
 	}

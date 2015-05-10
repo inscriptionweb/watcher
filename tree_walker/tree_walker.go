@@ -42,13 +42,15 @@ func (e TreeWalkerError) CodeInteger() uint32 {
 type TreeWalker struct {
 	MaxChangeTime time.Duration
 	ExcludedFolderNames map[string]bool
+	logger              *logrus.Logger
 }
 
 // Constructor
-func NewTreeWalker(maxChangeTime time.Duration, excludedFolderNames map[string]bool) *TreeWalker {
+func NewTreeWalker(maxChangeTime time.Duration, excludedFolderNames map[string]bool, logger *logrus.Logger) *TreeWalker {
 	return &TreeWalker{
 		MaxChangeTime: maxChangeTime,
 		ExcludedFolderNames: excludedFolderNames,
+		logger:              logger,
 	}
 }
 
@@ -68,7 +70,7 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 	defer file.Close()
 
 	if error != nil {
-		logrus.WithFields(logrus.Fields{
+		c.logger.WithFields(logrus.Fields{
 			"path": path,
 		}).Error("Path not found")
 
@@ -81,7 +83,7 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 	if fileStat, error := file.Stat(); error != nil || !fileStat.IsDir() {
 		if (error != nil) {
 
-			logrus.WithFields(logrus.Fields{
+			c.logger.WithFields(logrus.Fields{
 				"path": path,
 			}).Error("Can't stat path")
 
@@ -92,7 +94,7 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 		}
 
 		if (!fileStat.IsDir()) {
-			logrus.WithFields(logrus.Fields{
+			c.logger.WithFields(logrus.Fields{
 				"path": path,
 			}).Error("Path is not a directory")
 
@@ -116,7 +118,7 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 					if !subFileStat.IsDir() {
 						if c.filterFileByDate(builtPath) {
 
-							logrus.WithFields(logrus.Fields{
+							c.logger.WithFields(logrus.Fields{
 								"file": builtPath,
 							}).Info("Add file")
 
@@ -127,7 +129,7 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 							return treeWalkerError
 						}
 
-						logrus.WithFields(logrus.Fields{
+						c.logger.WithFields(logrus.Fields{
 							"folder": builtPath,
 						}).Info("Browse folder")
 					}

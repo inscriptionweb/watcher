@@ -5,6 +5,7 @@ import "reflect"
 import "strings"
 import "testing"
 import "time"
+import "github.com/Sirupsen/logrus"
 
 func createFolderHierarchy () {
 	folders := []string{"level1", "level2", "level3", "level4", "level5", "level6"}
@@ -22,7 +23,7 @@ func TestWalkInFolder(t *testing.T) {
 	duration := time.Duration(0)
 	excludedFolderNames := make(map[string]bool)
 
-	treeWalker := NewTreeWalker(duration, excludedFolderNames)
+	treeWalker := NewTreeWalker(duration, excludedFolderNames, logrus.New())
 
 	path := "/tmp/level1"
 
@@ -45,7 +46,7 @@ func TestWalkUnexistingFolder(t *testing.T) {
 	duration := time.Duration(0)
 	excludedFolderNames := make(map[string]bool)
 
-	treeWalker := NewTreeWalker(duration, excludedFolderNames)
+	treeWalker := NewTreeWalker(duration, excludedFolderNames, logrus.New())
 
 	path := "/tmp/whatever"
 
@@ -61,7 +62,7 @@ func TestWalkAPathWhichPointOnFile(t *testing.T) {
 	duration := time.Duration(0)
 	excludedFolderNames := make(map[string]bool)
 
-	treeWalker := NewTreeWalker(duration, excludedFolderNames)
+	treeWalker := NewTreeWalker(duration, excludedFolderNames, logrus.New())
 
 	path := "/tmp/level1/hello-world.txt"
 
@@ -90,7 +91,7 @@ func TestWalkInFolderWithExcludedFolderNames(t *testing.T) {
 	excludedFolderNames["folder2"] = true
 	excludedFolderNames["whatever"] = true
 
-	treeWalker := NewTreeWalker(duration, excludedFolderNames)
+	treeWalker := NewTreeWalker(duration, excludedFolderNames, logrus.New())
 
 	path := "/tmp/level1"
 
