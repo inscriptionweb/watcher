@@ -40,12 +40,26 @@ func main() {
 
 	treeWalker := tree_walker.NewTreeWalker(*maxChangeTime, excludedFolders, logger)
 
-	if files, error := treeWalker.Process(localPath); error.CodeInteger() == tree_walker.NO_ERROR {
-		fileSender := sender.NewSender(*username, *ip, *keyFile, *localPath, *remotePath, logger)
-		fileSender.Send(files)
-	} else {
+	var files *[]string
+	var fileSender *sender.Sender
+	var treeWalkerError tree_walker.TreeWalkerError
+	var senderError sender.SenderError
+
+	if files, treeWalkerError = treeWalker.Process(localPath); treeWalkerError.CodeInteger() != tree_walker.NO_ERROR {
 		logger.WithFields(logrus.Fields{
-			"message": error.Error(),
+			"message": treeWalkerError.Error(),
+		}).Fatal("Something wrong happened")
+	}
+
+	if fileSender, senderError = sender.NewSender(*username, *ip, *keyFile, *localPath, *remotePath, logger); senderError.CodeInteger() != sender.NO_ERROR {
+		logger.WithFields(logrus.Fields{
+			"message": senderError.Error(),
+		}).Fatal("Something wrong happened")
+	}
+
+	if senderError = fileSender.Send(files); senderError.CodeInteger() != sender.NO_ERROR {
+		logger.WithFields(logrus.Fields{
+			"message": senderError.Error(),
 		}).Fatal("Something wrong happened")
 	}
 }

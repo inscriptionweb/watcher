@@ -70,38 +70,48 @@ func (c *TreeWalker) walk(path string, files *[]string) TreeWalkerError {
 	defer file.Close()
 
 	if error != nil {
-		c.logger.WithFields(logrus.Fields{
-			"path": path,
-		}).Error("Path not found")
-
-		return TreeWalkerError{
+		treeWalkerError := TreeWalkerError{
 			path,
 			PATH_NOT_FOUND,
 		}
+
+		c.logger.WithFields(logrus.Fields{
+			"path": path,
+			"code": treeWalkerError.CodeInteger(),
+		}).Error(treeWalkerError.CodeString())
+
+		return treeWalkerError
 	}
 
 	if fileStat, error := file.Stat(); error != nil || !fileStat.IsDir() {
 		if error != nil {
 
-			c.logger.WithFields(logrus.Fields{
-				"path": path,
-			}).Error("Can't stat path")
-
-			return TreeWalkerError{
+			treeWalkerError := TreeWalkerError{
 				path,
 				PATH_STAT_FAILURE,
 			}
+
+			c.logger.WithFields(logrus.Fields{
+				"path": path,
+				"code": treeWalkerError.CodeInteger(),
+			}).Error(treeWalkerError.CodeString())
+
+			return treeWalkerError
 		}
 
 		if !fileStat.IsDir() {
-			c.logger.WithFields(logrus.Fields{
-				"path": path,
-			}).Error("Path is not a directory")
 
-			return TreeWalkerError{
+			treeWalkerError := TreeWalkerError{
 				path,
 				PATH_NOT_A_DIRECTORY,
 			}
+
+			c.logger.WithFields(logrus.Fields{
+				"path": path,
+				"code": treeWalkerError.CodeInteger(),
+			}).Error(treeWalkerError.CodeString())
+
+			return treeWalkerError
 		}
 
 	}
