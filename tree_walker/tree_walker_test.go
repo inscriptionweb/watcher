@@ -7,14 +7,14 @@ import "testing"
 import "time"
 import "github.com/Sirupsen/logrus"
 
-func createFolderHierarchy () {
+func createFolderHierarchy() {
 	folders := []string{"level1", "level2", "level3", "level4", "level5", "level6"}
 
 	os.RemoveAll("/tmp/level1")
-	os.MkdirAll("/tmp/" + strings.Join(folders,"/"), 0777)
+	os.MkdirAll("/tmp/"+strings.Join(folders, "/"), 0777)
 
 	for i := 1; i <= len(folders); i++ {
-		os.Create("/tmp/" + strings.Join(folders[0:i],"/") + "/hello-world.txt")
+		os.Create("/tmp/" + strings.Join(folders[0:i], "/") + "/hello-world.txt")
 	}
 }
 
@@ -37,7 +37,7 @@ func TestWalkInFolder(t *testing.T) {
 		"/tmp/level1/hello-world.txt",
 	}
 
-	if !reflect.DeepEqual(*files,expectedResult) || error.CodeInteger() != 0 {
+	if !reflect.DeepEqual(*files, expectedResult) || error.CodeInteger() != 0 {
 		t.Error("List of files not as expected", files, error)
 	}
 }
@@ -102,7 +102,7 @@ func TestWalkInFolderWithExcludedFolderNames(t *testing.T) {
 		"/tmp/level1/hello-world.txt",
 	}
 
-	if !reflect.DeepEqual(*files,expectedResult) || error.CodeInteger() != NO_ERROR {
+	if !reflect.DeepEqual(*files, expectedResult) || error.CodeInteger() != NO_ERROR {
 		t.Error("Some files are not filtered properly", files, error)
 	}
 }

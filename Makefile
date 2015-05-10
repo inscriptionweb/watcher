@@ -7,7 +7,7 @@ build:	clean
 clean:
 	@echo "*** cleaning ***"
 	@rm -rf watcher
-	@find -name *.go -exec go fmt {} \;
+	@gofmt -s -w .
 test:
 	@echo "*** tests ***"
 	@export GOPATH=$(path) && cd $(src_path)/sender && go test

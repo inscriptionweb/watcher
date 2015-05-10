@@ -6,10 +6,10 @@ import "time"
 import "github.com/Sirupsen/logrus"
 
 const (
-	NO_ERROR = 0
-	PATH_NOT_FOUND = 1
+	NO_ERROR             = 0
+	PATH_NOT_FOUND       = 1
 	PATH_NOT_A_DIRECTORY = 2
-	PATH_STAT_FAILURE = 3
+	PATH_STAT_FAILURE    = 3
 )
 
 type TreeWalkerError struct {
@@ -24,11 +24,11 @@ func (e TreeWalkerError) Error() string {
 func (e TreeWalkerError) CodeString() string {
 	switch e.code {
 	case PATH_NOT_FOUND:
-		return  "PATH_NOT_FOUND"
+		return "PATH_NOT_FOUND"
 	case PATH_NOT_A_DIRECTORY:
-		return  "PATH_NOT_A_DIRECTORY"
+		return "PATH_NOT_A_DIRECTORY"
 	case PATH_STAT_FAILURE:
-		return  "PATH_STAT_FAILURE"
+		return "PATH_STAT_FAILURE"
 	}
 
 	return "NO_ERROR"
@@ -40,7 +40,7 @@ func (e TreeWalkerError) CodeInteger() uint32 {
 
 // All logic to browse files
 type TreeWalker struct {
-	MaxChangeTime time.Duration
+	MaxChangeTime       time.Duration
 	ExcludedFolderNames map[string]bool
 	logger              *logrus.Logger
 }
@@ -48,7 +48,7 @@ type TreeWalker struct {
 // Constructor
 func NewTreeWalker(maxChangeTime time.Duration, excludedFolderNames map[string]bool, logger *logrus.Logger) *TreeWalker {
 	return &TreeWalker{
-		MaxChangeTime: maxChangeTime,
+		MaxChangeTime:       maxChangeTime,
 		ExcludedFolderNames: excludedFolderNames,
 		logger:              logger,
 	}
@@ -64,7 +64,7 @@ func (c *TreeWalker) Process(path *string) (*[]string, TreeWalkerError) {
 }
 
 // Recursive function to browse files
-func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
+func (c *TreeWalker) walk(path string, files *[]string) TreeWalkerError {
 
 	file, error := os.Open(path)
 	defer file.Close()
@@ -81,7 +81,7 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 	}
 
 	if fileStat, error := file.Stat(); error != nil || !fileStat.IsDir() {
-		if (error != nil) {
+		if error != nil {
 
 			c.logger.WithFields(logrus.Fields{
 				"path": path,
@@ -93,7 +93,7 @@ func (c *TreeWalker) walk(path string, files *[]string) (TreeWalkerError) {
 			}
 		}
 
-		if (!fileStat.IsDir()) {
+		if !fileStat.IsDir() {
 			c.logger.WithFields(logrus.Fields{
 				"path": path,
 			}).Error("Path is not a directory")
@@ -152,7 +152,7 @@ func (c *TreeWalker) filterByFolderName(fileName string) bool {
 		return true
 	}
 
-	return  !c.ExcludedFolderNames[fileName]
+	return !c.ExcludedFolderNames[fileName]
 }
 
 // Filter according to duration

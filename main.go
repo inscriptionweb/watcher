@@ -31,6 +31,7 @@ func main() {
 
 	logger := logrus.New()
 	logger.Level = loggingLevel
+
 	excludedFolders := make(map[string]bool)
 
 	for _, value := range strings.Split(*excludedFoldersString, ",") {
