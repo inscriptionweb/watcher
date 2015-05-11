@@ -4,11 +4,13 @@ import "github.com/antham/watcher/tree_walker"
 import "github.com/antham/watcher/sender"
 import "gopkg.in/alecthomas/kingpin.v1"
 import "strings"
+import "time"
 import "github.com/Sirupsen/logrus"
 
 var (
 	verbose               = kingpin.Flag("verbose", "Report every operation occuring").Bool()
-	maxChangeTime         = kingpin.Flag("max-change-time", "Maximal change time").Duration()
+	maxChangeTime         = kingpin.Flag("max-change-time", "Maximal change time").Default("9s").Duration()
+	intervalTime          = kingpin.Flag("interval-time", "Interval between two check").Default("10s").Duration()
 	excludedFoldersString = kingpin.Flag("excluded-paths", "Folder to exclude from lookup separated with comma").String()
 	username              = kingpin.Flag("username", "Ssh username").String()
 	ip                    = kingpin.Flag("ip", "Ssh ip").String()
@@ -38,18 +40,10 @@ func main() {
 		excludedFolders[value] = true
 	}
 
-	treeWalker := tree_walker.NewTreeWalker(*maxChangeTime, excludedFolders, logger)
-
-	var files *[]string
 	var fileSender *sender.Sender
-	var treeWalkerError tree_walker.TreeWalkerError
 	var senderError sender.SenderError
 
-	if files, treeWalkerError = treeWalker.Process(localPath); treeWalkerError.CodeInteger() != tree_walker.NO_ERROR {
-		logger.WithFields(logrus.Fields{
-			"message": treeWalkerError.Error(),
-		}).Fatal("Something wrong happened")
-	}
+	treeWalker := tree_walker.NewTreeWalker(*maxChangeTime, excludedFolders, logger)
 
 	if fileSender, senderError = sender.NewSender(*username, *ip, *keyFile, *localPath, *remotePath, logger); senderError.CodeInteger() != sender.NO_ERROR {
 		logger.WithFields(logrus.Fields{
@@ -57,9 +51,26 @@ func main() {
 		}).Fatal("Something wrong happened")
 	}
 
-	if senderError = fileSender.Send(files); senderError.CodeInteger() != sender.NO_ERROR {
-		logger.WithFields(logrus.Fields{
-			"message": senderError.Error(),
-		}).Fatal("Something wrong happened")
-	}
+	go func() {
+
+		for _ = range time.Tick(*intervalTime) {
+
+			var files *[]string
+			var treeWalkerError tree_walker.TreeWalkerError
+
+			if files, treeWalkerError = treeWalker.Process(localPath); treeWalkerError.CodeInteger() != tree_walker.NO_ERROR {
+				logger.WithFields(logrus.Fields{
+					"message": treeWalkerError.Error(),
+				}).Fatal("Something wrong happened")
+			}
+
+			if senderError = fileSender.Send(files); senderError.CodeInteger() != sender.NO_ERROR {
+				logger.WithFields(logrus.Fields{
+					"message": senderError.Error(),
+				}).Fatal("Something wrong happened")
+			}
+		}
+	}()
+
+	select {}
 }
