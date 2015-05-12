@@ -13,7 +13,7 @@ var (
 	intervalTime          = kingpin.Flag("interval-time", "Interval between two check").Default("10s").Duration()
 	excludedFoldersString = kingpin.Flag("excluded-paths", "Folder to exclude from lookup separated with comma").String()
 	username              = kingpin.Flag("username", "Ssh username").String()
-	ip                    = kingpin.Flag("ip", "Ssh ip").String()
+	host                  = kingpin.Flag("host", "Ssh host").String()
 	keyFile               = kingpin.Flag("key-file", "Ssh keyfile").String()
 
 	localPath  = kingpin.Arg("local-path", "Local pathname to lookup").Required().String()
@@ -45,7 +45,7 @@ func main() {
 
 	treeWalker := tree_walker.NewTreeWalker(*maxChangeTime, excludedFolders, logger)
 
-	if fileSender, senderError = sender.NewSender(*username, *ip, *keyFile, *localPath, *remotePath, logger); senderError.CodeInteger() != sender.NO_ERROR {
+	if fileSender, senderError = sender.NewSender(*username, *host, *keyFile, *localPath, *remotePath, logger); senderError.CodeInteger() != sender.NO_ERROR {
 		logger.WithFields(logrus.Fields{
 			"message": senderError.Error(),
 		}).Fatal("Something wrong happened")
